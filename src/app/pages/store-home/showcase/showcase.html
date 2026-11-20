@@ -1,0 +1,135 @@
+<div class="sx">
+  <!-- one canvas draws every 3D unit on this page -->
+  <canvas #gl class="sx-gl" aria-hidden="true"></canvas>
+
+  @if (intro()) {
+    <div class="sx-intro" [class.is-done]="introDone()" (animationend)="onIntroEnd($event)" role="presentation">
+      <div class="sx-intro__light"></div>
+      <div class="sx-intro__stamp">
+        <img src="brand/asd-dw-logo@2x.webp" alt="" width="132" height="120" />
+        <span class="sx-intro__name">AMSIDEL</span>
+        <span class="sx-intro__sub">DOORS &amp; WINDOWS</span>
+      </div>
+      <div class="sx-intro__doors">
+        <span class="sx-intro__leaf sx-intro__leaf--l"></span>
+        <span class="sx-intro__leaf sx-intro__leaf--r"></span>
+      </div>
+      <button type="button" class="sx-intro__skip" (click)="finishIntro()">Skip intro</button>
+    </div>
+  }
+
+  <!-- Hero arc: one lead unit per range -->
+  <section #hero class="sx-hero" [style.--flav]="views[0].colour" aria-roledescription="carousel" aria-label="Our ranges">
+    <div #reveal class="sx-hero__reveal" aria-hidden="true"></div>
+    <div class="sx-rings" aria-hidden="true"></div>
+    <span class="sx-hero__count" aria-hidden="true">{{ views[current()].num }}</span>
+
+    <div
+      class="sx-arc"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerCancel()"
+      (pointerleave)="onPointerLeave()"
+    ></div>
+
+    <button type="button" class="sx-auto" [attr.aria-pressed]="autoplay()" (click)="toggleAutoplay()">
+      <span class="sx-auto__ring" aria-hidden="true">
+        @if (autoplay()) {
+          <svg viewBox="0 0 12 12"><path d="M4 3v6M8 3v6" stroke="currentColor" stroke-width="1.6" /></svg>
+        } @else {
+          <svg viewBox="0 0 12 12"><path d="M4 2.5v7l6-3.5z" fill="currentColor" /></svg>
+        }
+      </span>
+      Autoplay
+    </button>
+
+    <div class="sx-hero__text">
+      <p #fade class="sx-eyebrow">{{ rangeLabel(views[current()]) }}</p>
+      <h1 #title class="sx-title disp" aria-live="polite"></h1>
+      <div #fade class="sx-cta">
+        <a class="sx-pill sx-pill--ink" [routerLink]="['/category', views[current()].slug]">Explore {{ views[current()].cat.short }} <span aria-hidden="true">&rarr;</span></a>
+        <a class="sx-pill sx-pill--line" routerLink="/site-visit">Free site visit</a>
+        <button type="button" class="sx-next" aria-label="Next range" (click)="next()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+      </div>
+      <div class="sx-dots">
+        @for (v of views; track v.slug; let i = $index) {
+          <button type="button" [class.is-active]="i === current()" [attr.aria-label]="v.cat.name" [attr.aria-current]="i === current() ? 'true' : null" (click)="goToRange(i)"></button>
+        }
+      </div>
+    </div>
+
+    <p class="sx-cue" aria-hidden="true"><span>Scroll to open</span><i></i></p>
+
+    <!-- keyboard and screen-reader access to every unit drawn on the canvas -->
+    <ul class="sr-only">
+      @for (v of views; track v.slug) {
+        <li><a [routerLink]="['/category', v.slug]">{{ v.lead.name }}, {{ v.cat.name }}</a></li>
+      }
+    </ul>
+  </section>
+
+  <!-- One pinned module per range -->
+  @for (v of views; track v.slug; let i = $index) {
+    <section #mod class="sx-mod" [style.--c]="v.colour" [attr.aria-labelledby]="'sx-h-' + v.slug" [attr.data-step]="steps()[i]">
+      <!-- two sticky layers: the outline number under the 3D canvas, the text and links above it -->
+      <div class="sx-back" aria-hidden="true">
+        <span class="sx-num disp">{{ v.num }}</span>
+      </div>
+      <div class="sx-pin">
+
+        <div class="sx-copy">
+          <p class="sx-copy__eyebrow">Range {{ v.num }} / 0{{ views.length }} · {{ v.count }} designs</p>
+          <h2 class="sx-copy__head disp" [id]="'sx-h-' + v.slug">{{ v.cat.name }}</h2>
+          <p class="sx-copy__tag">{{ v.cat.tagline }}</p>
+          <div class="sx-points">
+            @for (pt of v.points; track pt; let s = $index) {
+              <p class="sx-point" [class.is-active]="steps()[i] === s">
+                <span class="sx-point__n">0{{ s + 1 }} &mdash;</span>
+                {{ pt }}
+              </p>
+            }
+          </div>
+          <div class="sx-ticks" aria-hidden="true">
+            @for (pt of v.points; track pt; let s = $index) {
+              <span [class.is-active]="steps()[i] === s"></span>
+            }
+          </div>
+          <div class="sx-copy__cta">
+            <a class="sx-pill sx-pill--ink" [routerLink]="['/category', v.slug]">Explore all {{ v.count }} <span aria-hidden="true">&rarr;</span></a>
+            <a class="sx-pill sx-pill--line" routerLink="/contact" fragment="quote">Get a quote</a>
+          </div>
+        </div>
+
+        <a #box class="sx-box" [routerLink]="['/category', v.slug]" [attr.aria-label]="v.lead.name + ', ' + v.cat.name">
+          <img class="sx-flat" [src]="v.lead.img" alt="" loading="lazy" />
+        </a>
+        @if (v.partner) {
+          <a #box2 class="sx-box2" [routerLink]="['/category', v.slug]" [attr.aria-label]="v.partner.name + ', ' + v.cat.name">
+            <img class="sx-flat" [src]="v.partner.img" alt="" loading="lazy" />
+          </a>
+        }
+
+        <nav class="sx-models" [attr.aria-label]="v.cat.short + ' designs'">
+          @for (p of v.products; track p.slug) {
+            <a class="sx-model" [routerLink]="['/product', p.slug]">
+              <img [src]="p.thumb" [alt]="p.name + ' — ' + v.cat.short" loading="lazy" width="44" height="56" />
+              <span><strong>{{ p.name }}</strong><small>{{ p.code }}</small></span>
+            </a>
+          }
+          <a class="sx-model sx-model--all" [routerLink]="['/category', v.slug]">Explore all {{ v.count }} <span aria-hidden="true">&rarr;</span></a>
+        </nav>
+
+        <p class="sx-hint" aria-hidden="true">
+          @switch (steps()[i]) {
+            @case (0) { {{ v.lead.opening === 'hinged' ? 'Scroll — the door swings open' : 'Scroll — the sash slides open' }} }
+            @case (1) { Turning round: the inside face }
+            @default { Back to the front, wide open }
+          }
+        </p>
+      </div>
+    </section>
+  }
+</div>

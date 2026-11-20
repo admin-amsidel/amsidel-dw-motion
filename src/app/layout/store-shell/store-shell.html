@@ -1,0 +1,195 @@
+<a class="skip" appScrollTo="main">Skip to content</a>
+
+<div class="topbar">
+  <div class="container topbar__inner">
+    <span class="topbar__note">Made-to-measure doors &amp; windows · Free site measurement</span>
+    <span class="topbar__links">
+      @if (site.phone) {
+        <a [href]="tel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>{{ site.phone }}</a>
+      }
+      <span class="contact-text"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>{{ site.email }}</span>
+      <a class="topbar__alt" [href]="'mailto:' + site.altEmail"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>{{ site.altEmail }}</a>
+      <span class="topbar__hours">{{ site.hours }}</span>
+    </span>
+  </div>
+</div>
+
+<header #header class="header" [class.header--scrolled]="scrolled()">
+  <div class="container header__inner">
+    <a class="logo" routerLink="/" aria-label="Amsidel Doors & Windows home">
+      <img srcset="brand/asd-dw-logo.webp 1x, brand/asd-dw-logo@2x.webp 2x" src="brand/asd-dw-logo.webp" alt="Amsidel Doors & Windows" width="66" height="60" />
+    </a>
+
+    <nav class="nav" [class.nav--open]="drawerOpen()" id="site-nav" aria-label="Main" (click)="onNavClick($event)">
+      <ul class="nav__list">
+        <li>
+          <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        </li>
+        <li>
+          <a routerLink="/about" routerLinkActive="is-active">About</a>
+        </li>
+        <li class="has-mega" [class.is-open]="productsOpen()" [class.is-suppressed]="megaSuppressed()" (mouseleave)="megaSuppressed.set(false)">
+          <span class="nav__split">
+            <a routerLink="/products" routerLinkActive="is-active">Products</a>
+            <button
+              class="nav__caret"
+              type="button"
+              aria-label="Show product categories"
+              aria-controls="mega"
+              [attr.aria-expanded]="productsOpen()"
+              (click)="toggleProducts()"
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+            </button>
+          </span>
+          <div class="mega" id="mega">
+            <div class="mega__col">
+              <p class="mega__head">Doors &amp; Windows</p>
+              @for (c of systems; track c.slug) {
+                <a [routerLink]="['/category', c.slug]">
+                  <img [src]="c.thumb" alt="" width="44" height="44" loading="lazy" />
+                  <span>{{ c.name }}<small>{{ c.tagline }}</small></span>
+                </a>
+              }
+            </div>
+            <div class="mega__col">
+              <p class="mega__head">Doors</p>
+              @for (c of doors; track c.slug) {
+                <a [routerLink]="['/category', c.slug]">
+                  <img [src]="c.thumb" alt="" width="44" height="44" loading="lazy" />
+                  <span>{{ c.name }}<small>{{ c.tagline }}</small></span>
+                </a>
+              }
+            </div>
+          </div>
+        </li>
+        <li>
+          <a routerLink="/projects" routerLinkActive="is-active">Projects</a>
+        </li>
+        <li>
+          <a routerLink="/contact" routerLinkActive="is-active">Contact</a>
+        </li>
+        <li class="nav__group-link">
+          <a [href]="groupUrl">Amsidel Group</a>
+        </li>
+      </ul>
+      @if (news.offers().length) {
+        <a class="btn btn--dark nav__cta-mobile" routerLink="/offers">See {{ news.offers().length === 1 ? 'our offer' : 'our ' + news.offers().length + ' offers' }}</a>
+      }
+      <a class="btn btn--gold nav__cta-mobile" routerLink="/contact" fragment="quote">Get a free quote</a>
+    </nav>
+
+    <div class="header__actions">
+      <a class="btn btn--gold header__cta" routerLink="/contact" fragment="quote">Get a Quote</a>
+      @if (news.offers().length) {
+        <a class="offers-btn" routerLink="/offers" routerLinkActive="is-active" title="Offers"
+           [attr.aria-label]="news.offers().length + (news.offers().length === 1 ? ' offer' : ' offers') + ' running'">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8L3 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /><circle cx="7.5" cy="8.5" r="1.6" fill="currentColor" /></svg>
+          <span class="offers-btn__label">Offers</span>
+          <span class="offers-btn__count" aria-hidden="true">{{ news.offers().length }}</span>
+        </a>
+      }
+      <button
+        class="burger"
+        type="button"
+        aria-controls="site-nav"
+        [attr.aria-expanded]="drawerOpen()"
+        [attr.aria-label]="drawerOpen() ? 'Close menu' : 'Open menu'"
+        (click)="toggleDrawer()"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <router-outlet />
+</main>
+
+<section class="cta-band">
+  <div class="container cta-band__inner">
+    <div>
+      <p class="kicker">Planning a new home or a renovation?</p>
+      <h2>Tell us your openings. We'll bring the samples.</h2>
+    </div>
+    <div class="cta-band__actions">
+      <a class="btn btn--gold" routerLink="/site-visit">Book a free site visit</a>
+      <a class="btn btn--ghost-light" routerLink="/products">Browse all products</a>
+      @if (site.phone) {
+        <a class="btn btn--ghost-light" [href]="tel">Call {{ site.phone }}</a>
+      } @else {
+        <a class="btn btn--ghost-light" [href]="'mailto:' + site.altEmail">Email us</a>
+      }
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container footer__grid">
+    <div class="footer__brand">
+      <img srcset="brand/asd-dw-logo.webp 1x, brand/asd-dw-logo@2x.webp 2x" src="brand/asd-dw-logo.webp" alt="Amsidel Doors & Windows" width="165" height="150" loading="lazy" />
+      <p>
+        Amsidel Doors &amp; Windows is a brand of {{ site.company }}. We supply and install doors and windows for homes,
+        apartments and commercial spaces.
+      </p>
+    </div>
+
+    <div>
+      <h3>Doors &amp; Windows</h3>
+      <ul>
+        @for (c of systems; track c.slug) {
+          <li><a [routerLink]="['/category', c.slug]">{{ c.name }}</a></li>
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h3>Doors</h3>
+      <ul>
+        @for (c of doors; track c.slug) {
+          <li><a [routerLink]="['/category', c.slug]">{{ c.name }}</a></li>
+        }
+      </ul>
+    </div>
+
+    <div>
+      <h3>Company</h3>
+      <ul>
+        <li><a routerLink="/about">About us</a></li>
+        <li><a routerLink="/projects">Projects</a></li>
+        <li><a routerLink="/contact">Contact</a></li>
+        <li><a routerLink="/site-visit">Book a site visit</a></li>
+        <li><a [href]="groupUrl">Amsidel Group</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h3>Get in touch</h3>
+      <ul class="footer__contact">
+        @if (site.address) {
+          <li>{{ site.address }}</li>
+        }
+        @if (site.phone) {
+          <li><a [href]="tel"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>{{ site.phone }}</a></li>
+        }
+        <li><span class="contact-text"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg>{{ site.email }}</span></li>
+        <li><a [href]="'mailto:' + site.altEmail"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z M4 7l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" /></svg><span>{{ altEmailUser }}<wbr />&#64;{{ altEmailDomain }}</span></a></li>
+        <li><a [href]="'https://' + site.website">{{ site.website }}</a></li>
+        <li>{{ site.hours }}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer__bottom">
+    <span>© {{ year }} {{ site.company }}. All rights reserved.</span>
+    <span>Doors · Windows · Glazing</span>
+    <span class="credit">{{ credits.line }} · {{ credits.copyright }}</span>
+  </div>
+</footer>
+
+<a class="float-btn" routerLink="/contact" fragment="quote" aria-label="Request a quote">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M4 5h16v11H8l-4 4V5Z" /><path stroke="currentColor" stroke-width="1.8" d="M8 9h8M8 12.5h5" /></svg>
+</a>
+
+<!-- AMI chat, with the WhatsApp Business button above it -->
+<app-ami-chat />

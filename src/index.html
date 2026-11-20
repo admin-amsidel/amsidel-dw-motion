@@ -152,5 +152,35 @@
   <app-root></app-root>
   <!-- safety net: never leave the loader up if the app fails to start -->
   <script>setTimeout(function () { var l = document.getElementById('app-loader'); if (l) l.classList.add('is-hidden'); }, 15000);</script>
+  <!-- Product-proof stories (public/amsidel-*.js, served as-is, loaded once for the whole SPA).
+       amsidel-anim.js is the shared player; each scene file adds one story. They play in turn
+       (termite -> monsoon -> noise -> termite ...) with a 15s pause after each, until the visitor closes it (x).
+       Transparent strip, 75% of the screen wide, 100px tall (86px on phones). Phones (<= 560px): bottom-left,
+       level with the quote button; 75vw ends before the quote / AMI / WhatsApp column on the right (ami-chat.scss).
+       Larger screens: bottom centre, clear of that column.
+       zIndex 35: above page content and the quote button (25), below AMI chat (40/41), header and mobile nav (100),
+       intro (950), loader and lightboxes (1000).
+       To drop one story, delete its script tag; to turn them all off, delete this whole block. -->
+  <script>
+    (function () {
+      var phone = window.innerWidth <= 560;
+      window.AMSIDEL_ANIM = {
+        interval: 15000,
+        firstDelay: 3000,
+        order: ['termite', 'monsoon', 'noise'],
+        card: false,
+        zIndex: 35,
+        width: '75vw',
+        height: phone ? 86 : 100,
+        bottom: phone ? 6 : 16,
+        align: phone ? 'left' : 'center',
+        edge: 6
+      };
+    })();
+  </script>
+  <script src="amsidel-anim.js" defer></script>
+  <script src="amsidel-termite.js" defer></script>
+  <script src="amsidel-monsoon.js" defer></script>
+  <script src="amsidel-noise.js" defer></script>
 </body>
 </html>

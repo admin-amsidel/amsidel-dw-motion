@@ -1,6 +1,8 @@
 @if (teaser() && !open()) {
   <div class="teaser" role="status">
-    <button class="teaser__text" type="button" (click)="show()">{{ ami.teaser }}</button>
+    <button class="teaser__text" type="button" [attr.aria-label]="ami.teaser" (click)="show()">
+      <span class="teaser__full">{{ ami.teaser }}</span><span class="teaser__short" aria-hidden="true">Hi</span>
+    </button>
     <button class="teaser__close" type="button" aria-label="Dismiss" (click)="teaser.set(false)">×</button>
   </div>
 }

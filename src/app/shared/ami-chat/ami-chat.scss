@@ -170,6 +170,11 @@
   cursor: pointer;
 }
 
+// phones show the short greeting instead (see the max-width: 560px block)
+.teaser__short {
+  display: none;
+}
+
 .teaser__close {
   border: 0;
   background: none;
@@ -561,7 +566,8 @@
 
   .teaser {
     right: calc(var(--ami-right) + 56px);
-    bottom: calc(var(--ami-bottom) + 4px);
+    // beside the upper half of the launcher: clears the product-proof strip (86px tall, 6px from the bottom; index.html)
+    bottom: calc(var(--ami-bottom) + 30px);
     max-width: min(220px, calc(100vw - 110px));
   }
 
@@ -569,6 +575,16 @@
     padding: 9px 2px 9px 12px;
     font-size: 0.8rem;
     line-height: 1.4;
+  }
+
+  // just "Hi" on phones, so the bubble stays clear of the product-proof strip at the bottom-left
+  .teaser__full {
+    display: none;
+  }
+
+  .teaser__short {
+    display: inline;
+    font-weight: 600;
   }
 
   .teaser__close {

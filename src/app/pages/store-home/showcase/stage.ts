@@ -160,7 +160,9 @@ export class Stage {
     const key = def.id;
     const hit = this.textures.get(key);
     if (hit) return hit;
-    const W = 640;
+    // texture size: phones 640 wide; larger screens about 1400 on the long side (max 1024 wide), so the
+    // high-resolution photos stay sharp on big windows without tripling memory for the tall doors
+    const W = this.vw < 820 ? 640 : Math.round(Math.min(1024, Math.max(640, 1400 / def.aspect)));
     const H = Math.round(W * def.aspect);
     const fc = canvasOf(W, H);
     const bc = canvasOf(W, H);
@@ -206,7 +208,7 @@ export class Unit {
   /** Hinged leaf pivot, or the sliding sash. */
   private mover?: Group | Mesh;
   private slideFrom = 0;
-  private slideBy = 0;
+  private slideBy = 0; // signed: + slides right, - slides left
   private slideZ = 0;
   readonly aspect: number;
   /** Last state applied; read it to hit-test or to continue a tween. */
@@ -257,15 +259,21 @@ export class Unit {
       this.group.add(pivot);
       this.mover = pivot;
     } else {
+      // sash edges: where the photo's sashes meet (def.splits), or equal widths
       const n = Math.max(2, def.panels ?? 2);
-      const pw = (r - l) / n;
+      const cuts = def.splits?.length === n - 1 ? def.splits : Array.from({ length: n - 1 }, (_, i) => l + ((r - l) * (i + 1)) / n);
+      const edges = [l, ...cuts, r];
+      const first = def.slide === 'first';
+      const moving = first ? 0 : n - 1;
       for (let i = 0; i < n; i++) {
-        const sash = part(mats, A, l + i * pw, t, l + (i + 1) * pw, b, LEAF_D, leafZ);
+        const sash = part(mats, A, edges[i], t, edges[i + 1], b, LEAF_D, leafZ);
         this.group.add(sash);
-        if (i === n - 1) {
+        if (i === moving) {
+          const sw = edges[i + 1] - edges[i];
           this.mover = sash;
           this.slideFrom = sash.position.x;
-          this.slideBy = pw * 0.97;
+          // 'first': all the way right, so the whole opening is clear; 'last': left, stopping just short
+          this.slideBy = first ? sw : -sw * 0.97;
           this.slideZ = leafZ;
         }
       }
@@ -303,7 +311,7 @@ export class Unit {
         // the sash steps back first, then glides behind its neighbour
         const back = Math.min(1, open * 5);
         this.mover.position.z = this.slideZ - back * LEAF_D * 1.1;
-        this.mover.position.x = this.slideFrom - easeInOut(Math.max(0, (open - 0.08) / 0.92)) * this.slideBy;
+        this.mover.position.x = this.slideFrom + easeInOut(Math.max(0, (open - 0.08) / 0.92)) * this.slideBy;
       }
     }
     this.glowMat.opacity = s.op * Math.min(1, open * 3);
@@ -455,7 +463,10 @@ function drawInterior(c: HTMLCanvasElement, front: HTMLCanvasElement, label: Int
   const x1 = W * 0.87;
   const y0 = at(tall ? 0.19 : 0.22);
   const rows = label.rows.slice(0, 6);
-  const rowH = tall ? H * 0.034 : H * 0.07;
+  const points = label.points.slice(0, 3);
+  // row height: the card, the FEATURES heading and its points must all end above the footer line (H * 0.86)
+  const units = rows.length + 2.2 + 1.4 + points.length * 0.95 + 0.4;
+  const rowH = Math.min(tall ? H * 0.034 : H * 0.07, (H * 0.86 - y0) / units);
   const y1 = y0 + rowH * (rows.length + 2.2);
   g.fillStyle = 'rgba(255,255,255,.92)';
   roundRect(g, x0, y0, x1 - x0, y1 - y0, W * 0.03);
@@ -484,7 +495,7 @@ function drawInterior(c: HTMLCanvasElement, front: HTMLCanvasElement, label: Int
   g.font = `500 ${W * 0.034}px "DM Mono", ui-monospace, monospace`;
   g.fillText('FEATURES', W / 2, y);
   g.font = `400 ${W * 0.032}px "DM Mono", ui-monospace, monospace`;
-  for (const p of label.points.slice(0, 3)) {
+  for (const p of points) {
     y += rowH * 0.95;
     if (y > H * 0.86) break;
     g.fillText('· ' + p, W / 2, y, W * 0.76);
